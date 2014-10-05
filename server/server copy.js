@@ -11,7 +11,7 @@ var myoWS = new WebSocket("ws://127.0.0.1:7204/myo/1");
 var accessToken = "";
 var refreshToken = "";
 var timer = 0;
-var things = [];
+var arr = [];
 /*var userForm = {
 	client_id: "1e6a3acba0ea4f8dcd93be2639b13407",
 	client_secret: "030ade9940c62fc1c69a583f91dee014",
@@ -23,12 +23,12 @@ var things = [];
 request.post({url: "https://winkapi.quirky.com/oauth2/token", headers: {"Content-Type": "application/json"}, formData: userForm}, function(err, httpResponse, body){
 	console.log(body);
 	if (httpResponse == 201){*/
-		var accessToken = "9ef903f96025b30ea7cb64b3b58e8350";
+		var accessToken = "323441e500f5022c99f672a57d574b7b";
 		request({
 			url: "https://winkapi.quirky.com/users/me/wink_devices",
 			method: "GET",
 			headers: {"Authorization": "Bearer " + accessToken}	
-		}, recall);
+		}, recall(error, response, body));
 /*	}
 });*/
 function recall(error, response, body){
@@ -40,11 +40,7 @@ function recall(error, response, body){
     var offset;
     var power = true;
     myoWS.on('message', function(myo){
-         data = JSON.parse(myo);
-        if (!things) {
-             init(data);
-        }
-       
+        data = JSON.parse(myo);
         if (timer >0) {
              timer -= 1;
         }
@@ -64,10 +60,8 @@ function recall(error, response, body){
              }
              else {
                 var change = roll - offset;
-                var newBrightness = Math.round((body.data[1].desired_state.brightness - change) * 100) / 100;
+                var newBrightness = Math.round((body.data[1].desired_state.brightness + change) * 100) / 100;
                 if ((Math.abs(change) > .1 || !power) && timer <= 0) {
-                    newBrightness = (newBrightness <0) ? 0 : newBrightness;
-                    newBrightness = (newBrightness >1) ? 1 : newBrightness;
                     var updateData = {
                         method: "PUT",
                         url: "https://winkapi.quirky.com/light_bulbs/" + body.data[1].light_bulb_id,
@@ -92,7 +86,7 @@ function recall(error, response, body){
                 }
                 power = true;
             }
-            else if (data[1].pose === "wave_in" && power) {
+            else if (data[1].pose === "fingers_spread" && power) {
                 console.log("Kill Bill");
                 if (power) {
                     timer = 0;
@@ -110,12 +104,8 @@ function recall(error, response, body){
 };
 
 
-function init(data) {
-    var start = 1;
-    for (var i=1; i<data.length; i++) {
-        things.push(data[i]);
-        things[i].wmin =
-    }
+function init() {
+    
     
 }
 
